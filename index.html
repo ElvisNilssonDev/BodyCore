@@ -7,15 +7,23 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="page">
-    <h1>BodyCore</h1>
-    <p class="hint">Use the pages below to test your API connection with a saved base URL.</p>
+  <h1>BodyCore</h1>
+  <p class="hint">This is a app to log your fitness activities.</p>
 
-    <div class="button-row">
-      <button onclick="window.location.href='lifts.html'">Lift Entries</button>
-      <button onclick="window.location.href='nutrition.html'">Nutrition Entries</button>
-    </div>
-  </main>
-  
+  <section class="controls">
+    <button class="btn active" data-endpoint="liftentries">🏋🏻‍♀️ View Lifts</button>
+    <button class="btn" data-endpoint="nutritionentries">📊 View Nutrition History</button>
+  </section>
+
+  <div id="loading" class="loading" style="display: none;">
+    <div class="spinner"></div>
+    <p>Loading data...</p>
+  </div>
+
+  <div id="error" class="error-banner" style="display: none;"></div>
+
+  <div id="results-container"></div>
+
+  <script src="script.js"></script>
 </body>
 </html>
