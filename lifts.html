@@ -7,9 +7,25 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Lift Entries</h1>
-  <button id="loadLiftsBtn">Load Lifts</button>
-  <div id="liftOutput"></div>
+  <main class="page">
+    <h1>Lift Entries</h1>
+
+    <label class="field">
+      <span>API Base URL</span>
+      <input
+        type="text"
+        data-api-base-url
+        placeholder="https://localhost:7239/api"
+      />
+    </label>
+
+    <p class="hint">
+      If Live Server is using a different page URL, keep this pointed at the backend URL you want to call.
+    </p>
+
+    <button id="loadLiftsBtn">Load Lifts</button>
+    <div id="liftOutput" class="output"></div>
+  </main>
 
   <script src="script.js"></script>
 </body>
