@@ -7,9 +7,25 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Nutrition Entries</h1>
-  <button id="loadNutritionBtn">Load Nutrition</button>
-  <div id="nutritionOutput"></div>
+  <main class="page">
+    <h1>Nutrition Entries</h1>
+
+    <label class="field">
+      <span>API Base URL</span>
+      <input
+        type="text"
+        data-api-base-url
+        placeholder="https://localhost:7239/api"
+      />
+    </label>
+
+    <p class="hint">
+      Update this if your API is on a different localhost port or if it needs http instead of https.
+    </p>
+
+    <button id="loadNutritionBtn">Load Nutrition</button>
+    <div id="nutritionOutput" class="output"></div>
+  </main>
 
   <script src="script.js"></script>
 </body>
