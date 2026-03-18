@@ -3,41 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesson 7 — API Fetch</title>
-
-
-    <link rel="stylesheet" href="style.css">
+    <title>BodyCore</title>
 </head>
 <body>
 
     <h1>BodyCore</h1>
-    <p class="intro">
-        BodyCoreApi <a href="https://jsonplaceholder.typicode.com" target="_blank">BodyCoreApi</a>
-    </p>
 
-    <!-- Controls to choose what to fetch -->
-    <section class="controls">
-        <button class="btn active" data-endpoint="LiftEntry">👤 LiftEntry</button>
-<button class="btn" data-endpoint="NutritionEntry">📝 NutritionEntry</button>
-    </section>
+    <button onclick="goTo('lifts.html')">Lift Entries</button>
+    <button onclick="goTo('nutrition.html')">Nutrition Entries</button>
 
-    <div id="today-box" class="today-box">
-    Laddar dagens pass...
-    </div>
 
-    <!-- Loading spinner (hidden by default) -->
-    <div id="loading" class="loading" style="display: none;">
-        <div class="spinner"></div>
-        <p>Loading data...</p>
-    </div>
-
-    <!-- Error message (hidden by default) -->
-    <div id="error" class="error-banner" style="display: none;"></div>
-
-    <!-- Results will be rendered here -->
-    <div id="results-container"></div>
-
-    <script src="script.js"></script>
+    <script>
+        function goTo(page) {
+            window.location.href = page;
+        }
+    </script>
 
 </body>
 </html>
