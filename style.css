@@ -350,6 +350,22 @@ input:focus {
   margin-top: 18px;
 }
 
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  font-size: 16px;
+  background: #020617;
+  color: #e2e8f0;
+}
+
+select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
 /* =========================
    OPTIONAL SPLIT LAYOUT
    ========================= */
