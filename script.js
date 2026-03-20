@@ -77,7 +77,21 @@ function createLiftCard(lift) {
             📊 ${lift.sets} sets<br>
             ⏲️ ${formattedTime}
         </p>
+
+        <button class="manage-btn">Manage</button>
+
+        <div class="card-actions hidden">
+            <button class="update-btn">Update</button>
+            <button class="delete-btn">Delete</button>
+        </div>
     `;
+
+    const manageBtn = card.querySelector(".manage-btn");
+    const actions = card.querySelector(".card-actions");
+
+    manageBtn.addEventListener("click", () => {
+        actions.classList.toggle("hidden");
+    });
 
     return card;
 }
@@ -97,7 +111,21 @@ function createNutritionCard(nutrition) {
             🍞 Carbs: ${nutrition.carbsGrams ?? 0}g<br>
             🧈 Fat: ${nutrition.fatGrams ?? 0}g
         </p>
+
+        <button class="manage-btn">Manage</button>
+
+        <div class="card-actions hidden">
+            <button class="update-btn">Update</button>
+            <button class="delete-btn">Delete</button>
+        </div>
     `;
+
+    const manageBtn = card.querySelector(".manage-btn");
+    const actions = card.querySelector(".card-actions");
+
+    manageBtn.addEventListener("click", () => {
+        actions.classList.toggle("hidden");
+    });
 
     return card;
 }
@@ -283,3 +311,11 @@ if (nutritionForm) {
         }
     });
 }
+
+// Delegate manage button clicks for lift cards
+const manageBtn = card.querySelector(".manage-btn");
+const actions = card.querySelector(".card-actions");
+
+manageBtn.addEventListener("click", () => {
+    actions.classList.toggle("hidden");
+});
