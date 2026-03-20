@@ -87,13 +87,9 @@ function renderData(endpoint, data) {
     }
 
     if (endpoint === "liftentries") {
-        data.forEach(lift => {
-            resultsContainer.appendChild(createLiftCard(lift));
-        });
+        renderLiftSections(data);
     } else if (endpoint === "nutritionentries") {
-        data.forEach(nutrition => {
-            resultsContainer.appendChild(createNutritionCard(nutrition));
-        });
+        renderNutritionSections(data);
     }
 }
 
@@ -442,6 +438,116 @@ if (buttons.length > 0) {
 
 if (resultsContainer) {
     fetchData("liftentries");
+}
+
+// =========================
+// Render sections
+// =========================
+function renderLiftSections(data) {
+    const sectionsWrapper = document.createElement("div");
+    sectionsWrapper.classList.add("results-sections");
+
+    const grouped = {
+        "Push Days": [],
+        "Pull Days": [],
+        "Leg Days": [],
+        "Rest Days": [],
+        "Other": []
+    };
+
+    data.forEach(lift => {
+        const title = (lift.title || "").toLowerCase();
+
+        if (title.includes("push")) {
+            grouped["Push Days"].push(lift);
+        } else if (title.includes("pull")) {
+            grouped["Pull Days"].push(lift);
+        } else if (title.includes("leg")) {
+            grouped["Leg Days"].push(lift);
+        } else if (title.includes("rest")) {
+            grouped["Rest Days"].push(lift);
+        } else {
+            grouped["Other"].push(lift);
+        }
+    });
+
+    Object.entries(grouped).forEach(([sectionName, items]) => {
+        if (items.length === 0) return;
+
+        const sectionBox = document.createElement("section");
+        sectionBox.classList.add("section-box");
+
+        const sectionTitle = document.createElement("h2");
+        sectionTitle.classList.add("section-title");
+        sectionTitle.textContent = sectionName;
+
+        const cardGroup = document.createElement("div");
+        cardGroup.classList.add("card-group");
+
+        items.forEach(lift => {
+            cardGroup.appendChild(createLiftCard(lift));
+        });
+
+        sectionBox.appendChild(sectionTitle);
+        sectionBox.appendChild(cardGroup);
+        sectionsWrapper.appendChild(sectionBox);
+    });
+
+    resultsContainer.appendChild(sectionsWrapper);
+}
+
+//Render nutrition sections
+function renderNutritionSections(data) {
+    const sectionsWrapper = document.createElement("div");
+    sectionsWrapper.classList.add("results-sections");
+
+    const grouped = {
+        "Push Days": [],
+        "Pull Days": [],
+        "Leg Days": [],
+        "Rest Days": [],
+        "Other": []
+    };
+
+    data.forEach(nutrition => {
+        const title = (nutrition.title || "").toLowerCase();
+
+        if (title.includes("push")) {
+            grouped["Push Days"].push(nutrition);
+        } else if (title.includes("pull")) {
+            grouped["Pull Days"].push(nutrition);
+        } else if (title.includes("leg")) {
+            grouped["Leg Days"].push(nutrition);
+        } else if (title.includes("rest")) {
+            grouped["Rest Days"].push(nutrition);
+        } else {
+            grouped["Other"].push(nutrition);
+        }
+    });
+
+    Object.entries(grouped).forEach(([sectionName, items]) => {
+        if (items.length === 0) return;
+
+        const sectionBox = document.createElement("section");
+        sectionBox.classList.add("section-box");
+
+        const sectionTitle = document.createElement("h2");
+        sectionTitle.classList.add("section-title");
+        sectionTitle.textContent = sectionName;
+
+        const cardGroup = document.createElement("div");
+        cardGroup.classList.add("card-group");
+
+        items.forEach(nutrition => {
+            cardGroup.appendChild(createNutritionCard(nutrition));
+        });
+
+        sectionBox.appendChild(sectionTitle);
+        sectionBox.appendChild(cardGroup);
+        sectionsWrapper.appendChild(sectionBox);
+    });
+
+    resultsContainer.appendChild(sectionsWrapper);
 }
 
 // =========================
