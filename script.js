@@ -20,6 +20,12 @@ const modalContent = document.getElementById("modalContent");
 const modalCancel = document.getElementById("modalCancel");
 const modalSave = document.getElementById("modalSave");
 
+// AddLift page relations
+const trainingWeekSelect = document.getElementById("trainingWeekSelect");
+const trainingDaySelect = document.getElementById("trainingDaySelect");
+const newWeekBtn = document.getElementById("newWeekBtn");
+const newDayBtn = document.getElementById("newDayBtn");
+
 // =========================
 // Config
 // =========================
@@ -27,8 +33,16 @@ const API_BASE = "https://localhost:7239/api";
 let currentData = [];
 
 // =========================
-// Modal helpers
+// Helpers
 // =========================
+function showMessage(html, isError = false) {
+    if (!messageBox) return;
+
+    messageBox.classList.remove("hidden");
+    messageBox.style.display = "block";
+    messageBox.innerHTML = isError ? `<p class="error">${html}</p>` : html;
+}
+
 function closeModal() {
     if (modalOverlay) modalOverlay.classList.add("hidden");
     if (modalContent) modalContent.innerHTML = "";
@@ -87,13 +101,9 @@ function renderData(endpoint, data) {
     }
 
     if (endpoint === "liftentries") {
-        data.forEach(lift => {
-            resultsContainer.appendChild(createLiftCard(lift));
-        });
+        renderLiftSections(data);
     } else if (endpoint === "nutritionentries") {
-        data.forEach(nutrition => {
-            resultsContainer.appendChild(createNutritionCard(nutrition));
-        });
+        renderNutritionSections(data);
     }
 }
 
@@ -445,6 +455,305 @@ if (resultsContainer) {
 }
 
 // =========================
+// Render sections
+// =========================
+function renderLiftSections(data) {
+    const sectionsWrapper = document.createElement("div");
+    sectionsWrapper.classList.add("results-sections");
+
+    const grouped = {
+        "Push Days": [],
+        "Pull Days": [],
+        "Leg Days": [],
+        "Rest Days": [],
+        "Other": []
+    };
+
+    data.forEach(lift => {
+        const title = (lift.title || "").toLowerCase();
+
+        if (title.includes("push")) {
+            grouped["Push Days"].push(lift);
+        } else if (title.includes("pull")) {
+            grouped["Pull Days"].push(lift);
+        } else if (title.includes("leg")) {
+            grouped["Leg Days"].push(lift);
+        } else if (title.includes("rest")) {
+            grouped["Rest Days"].push(lift);
+        } else {
+            grouped["Other"].push(lift);
+        }
+    });
+
+    Object.entries(grouped).forEach(([sectionName, items]) => {
+        if (items.length === 0) return;
+
+        const sectionBox = document.createElement("section");
+        sectionBox.classList.add("section-box");
+
+        const sectionTitle = document.createElement("h2");
+        sectionTitle.classList.add("section-title");
+        sectionTitle.textContent = sectionName;
+
+        const cardGroup = document.createElement("div");
+        cardGroup.classList.add("card-group");
+
+        items.forEach(lift => {
+            cardGroup.appendChild(createLiftCard(lift));
+        });
+
+        sectionBox.appendChild(sectionTitle);
+        sectionBox.appendChild(cardGroup);
+        sectionsWrapper.appendChild(sectionBox);
+    });
+
+    resultsContainer.appendChild(sectionsWrapper);
+}
+
+function renderNutritionSections(data) {
+    const sectionsWrapper = document.createElement("div");
+    sectionsWrapper.classList.add("results-sections");
+
+    const grouped = {
+        "Push Days": [],
+        "Pull Days": [],
+        "Leg Days": [],
+        "Rest Days": [],
+        "Other": []
+    };
+
+    data.forEach(nutrition => {
+        const title = (nutrition.title || "").toLowerCase();
+
+        if (title.includes("push")) {
+            grouped["Push Days"].push(nutrition);
+        } else if (title.includes("pull")) {
+            grouped["Pull Days"].push(nutrition);
+        } else if (title.includes("leg")) {
+            grouped["Leg Days"].push(nutrition);
+        } else if (title.includes("rest")) {
+            grouped["Rest Days"].push(nutrition);
+        } else {
+            grouped["Other"].push(nutrition);
+        }
+    });
+
+    Object.entries(grouped).forEach(([sectionName, items]) => {
+        if (items.length === 0) return;
+
+        const sectionBox = document.createElement("section");
+        sectionBox.classList.add("section-box");
+
+        const sectionTitle = document.createElement("h2");
+        sectionTitle.classList.add("section-title");
+        sectionTitle.textContent = sectionName;
+
+        const cardGroup = document.createElement("div");
+        cardGroup.classList.add("card-group");
+
+        items.forEach(nutrition => {
+            cardGroup.appendChild(createNutritionCard(nutrition));
+        });
+
+        sectionBox.appendChild(sectionTitle);
+        sectionBox.appendChild(cardGroup);
+        sectionsWrapper.appendChild(sectionBox);
+    });
+
+    resultsContainer.appendChild(sectionsWrapper);
+}
+
+// =========================
+// Training week/day logic for AddLift
+// =========================
+async function loadTrainingWeeks() {
+    if (!trainingWeekSelect) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/trainingweeks`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to load training weeks. ${errorText}`);
+        }
+
+        const weeks = await response.json();
+
+        trainingWeekSelect.innerHTML = `<option value="">Choose a training week</option>`;
+
+        weeks.forEach(week => {
+            const label = `${week.title} - ${week.description ?? "No description"}`;
+
+            trainingWeekSelect.innerHTML += `
+                <option value="${week.id}">
+                    ${label}
+                </option>
+            `;
+        });
+    } catch (error) {
+        console.error("Load training weeks failed:", error);
+        showMessage(`Failed to load training weeks: ${error.message}`, true);
+    }
+}
+
+async function loadTrainingDays(weekId) {
+    if (!trainingDaySelect) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/trainingdays`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to load training days. ${errorText}`);
+        }
+
+        const days = await response.json();
+
+        const filteredDays = days.filter(day => day.trainingWeekId === parseInt(weekId));
+
+        trainingDaySelect.innerHTML = `<option value="">Choose a training day</option>`;
+
+        filteredDays.forEach(day => {
+            const label = `${day.title} - ${day.description ?? "No description"}`;
+
+            trainingDaySelect.innerHTML += `
+                <option value="${day.id}">
+                    ${label}
+                </option>
+            `;
+        });
+    } catch (error) {
+        console.error("Load training days failed:", error);
+        showMessage(`Failed to load training days: ${error.message}`, true);
+    }
+}
+
+if (trainingWeekSelect) {
+    trainingWeekSelect.addEventListener("change", async () => {
+        const selectedWeekId = trainingWeekSelect.value;
+
+        if (trainingDaySelect) {
+            trainingDaySelect.innerHTML = `<option value="">Choose a training day</option>`;
+        }
+
+        if (!selectedWeekId) return;
+
+        await loadTrainingDays(selectedWeekId);
+    });
+}
+
+if (newWeekBtn) {
+    newWeekBtn.addEventListener("click", async () => {
+        const weekTitle = prompt("Enter training week title, for example: Week 1");
+        if (!weekTitle || !weekTitle.trim()) return;
+
+        const weekDescription = prompt("Enter training week description, for example: Intro week");
+        if (!weekDescription || !weekDescription.trim()) return;
+
+        const weekStartInput = prompt("Enter week start date in this format: 2026-03-20");
+        if (!weekStartInput || !weekStartInput.trim()) return;
+
+        const newWeek = {
+            title: weekTitle.trim(),
+            description: weekDescription.trim(),
+            weekStart: new Date(weekStartInput).toISOString()
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}/trainingweeks`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newWeek)
+            });
+
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                throw new Error(`Failed to create training week. ${responseText}`);
+            }
+
+            let createdWeek = null;
+            if (responseText) {
+                createdWeek = JSON.parse(responseText);
+            }
+
+            await loadTrainingWeeks();
+
+            if (createdWeek && createdWeek.id) {
+                trainingWeekSelect.value = createdWeek.id;
+                await loadTrainingDays(createdWeek.id);
+            }
+
+            showMessage(`<strong>Training week created successfully.</strong>`);
+        } catch (error) {
+            console.error("Create training week failed:", error);
+            showMessage(`Failed to create training week: ${error.message}`, true);
+        }
+    });
+}
+
+if (newDayBtn) {
+    newDayBtn.addEventListener("click", async () => {
+        const selectedWeekId = trainingWeekSelect?.value;
+
+        if (!selectedWeekId) {
+            showMessage("Choose a training week first.", true);
+            return;
+        }
+
+        const dayTitle = prompt("Enter training day title, for example: Saturday");
+        if (!dayTitle || !dayTitle.trim()) return;
+
+        const dayDescription = prompt("Enter training day description, for example: Legday");
+        if (!dayDescription || !dayDescription.trim()) return;
+
+        const dayDateInput = prompt("Enter training day date in this format: 2026-03-20");
+        if (!dayDateInput || !dayDateInput.trim()) return;
+
+        const newDay = {
+            title: dayTitle.trim(),
+            description: dayDescription.trim(),
+            date: new Date(dayDateInput).toISOString(),
+            trainingWeekId: parseInt(selectedWeekId)
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}/trainingdays`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newDay)
+            });
+
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                throw new Error(`Failed to create training day. ${responseText}`);
+            }
+
+            let createdDay = null;
+            if (responseText) {
+                createdDay = JSON.parse(responseText);
+            }
+
+            await loadTrainingDays(selectedWeekId);
+
+            if (createdDay && createdDay.id) {
+                trainingDaySelect.value = createdDay.id;
+            }
+
+            showMessage(`<strong>Training day created successfully.</strong>`);
+        } catch (error) {
+            console.error("Create training day failed:", error);
+            showMessage(`Failed to create training day: ${error.message}`, true);
+        }
+    });
+}
+
+// =========================
 // POST - Add Lift
 // =========================
 if (liftForm) {
@@ -457,10 +766,16 @@ if (liftForm) {
         const weightKgEl = document.getElementById("weightKg");
         const repsEl = document.getElementById("reps");
         const setsEl = document.getElementById("sets");
-        const trainingDayIdEl = document.getElementById("trainingDayId");
 
-        if (!titleEl || !timeEl || !exerciseEl || !weightKgEl || !repsEl || !setsEl || !trainingDayIdEl) {
+        if (!titleEl || !timeEl || !exerciseEl || !weightKgEl || !repsEl || !setsEl || !trainingDaySelect) {
             console.error("Lift form IDs do not match script.js");
+            return;
+        }
+
+        const selectedTrainingDayId = parseInt(trainingDaySelect.value);
+
+        if (!selectedTrainingDayId) {
+            showMessage("Choose a training day before creating the lift.", true);
             return;
         }
 
@@ -471,7 +786,7 @@ if (liftForm) {
             weightKg: parseFloat(weightKgEl.value),
             reps: parseInt(repsEl.value),
             sets: parseInt(setsEl.value),
-            trainingDayId: parseInt(trainingDayIdEl.value)
+            trainingDayId: selectedTrainingDayId
         };
 
         try {
@@ -491,22 +806,19 @@ if (liftForm) {
             const responseText = await response.text();
             const createdLift = responseText ? JSON.parse(responseText) : null;
 
-            if (messageBox) {
-                messageBox.style.display = "block";
-                messageBox.innerHTML = `
-                    <p><strong>Lift added successfully.</strong></p>
-                    <pre>${JSON.stringify(createdLift ?? newLift, null, 2)}</pre>
-                `;
-            }
+            showMessage(`
+                <p><strong>Lift added successfully.</strong></p>
+                <pre>${JSON.stringify(createdLift ?? newLift, null, 2)}</pre>
+            `);
 
             liftForm.reset();
+
+            if (trainingWeekSelect && trainingWeekSelect.value) {
+                await loadTrainingDays(trainingWeekSelect.value);
+            }
         } catch (error) {
             console.error("POST lift failed:", error);
-
-            if (messageBox) {
-                messageBox.style.display = "block";
-                messageBox.innerHTML = `<p class="error">Error: ${error.message}</p>`;
-            }
+            showMessage(`Error: ${error.message}`, true);
         }
     });
 }
@@ -560,6 +872,7 @@ if (nutritionForm) {
 
             if (messageBox) {
                 messageBox.style.display = "block";
+                messageBox.classList.remove("hidden");
                 messageBox.innerHTML = `
                     <p><strong>Nutrition added successfully.</strong></p>
                     <pre>${JSON.stringify(createdNutrition ?? newNutrition, null, 2)}</pre>
@@ -569,11 +882,14 @@ if (nutritionForm) {
             nutritionForm.reset();
         } catch (error) {
             console.error("POST nutrition failed:", error);
-
-            if (messageBox) {
-                messageBox.style.display = "block";
-                messageBox.innerHTML = `<p class="error">Error: ${error.message}</p>`;
-            }
+            showMessage(`Error: ${error.message}`, true);
         }
     });
+}
+
+// =========================
+// Initial load for AddLift relations
+// =========================
+if (trainingWeekSelect) {
+    loadTrainingWeeks();
 }

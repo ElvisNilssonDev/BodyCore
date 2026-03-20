@@ -2,49 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Add Lift</title>
+  <link rel="icon" type="image/jpg" href="images/6f318b0e-ee4c-4add-babd-4898834bc334.png">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="page">
     <h1>Add Lift</h1>
-    <p class="hint">Create a new lift entry and send it to your API.</p>
+    <p class="hint">
+      Create a lift, connect it to a training week, and place it inside a training day.
+    </p>
 
     <form id="liftForm">
       <div class="field">
+        <span>Training Week</span>
+        <select id="trainingWeekSelect" required>
+          <option value="">Choose a training week</option>
+        </select>
+      </div>
+
+      <div class="button-row">
+        <button type="button" id="newWeekBtn">+ Create New Week</button>
+      </div>
+
+      <div class="field">
+        <span>Training Day</span>
+        <select id="trainingDaySelect" required>
+          <option value="">Choose a training day</option>
+        </select>
+      </div>
+
+      <div class="button-row">
+        <button type="button" id="newDayBtn">+ Create New Day</button>
+      </div>
+
+      <div class="field">
         <span>Title</span>
-        <input type="text" id="title" placeholder="Push Day Bench" required />
+        <input
+          type="text"
+          id="title"
+          placeholder="Bench Entry"
+          required
+        />
       </div>
 
       <div class="field">
         <span>Time</span>
-        <input type="datetime-local" id="time" required />
+        <input
+          type="datetime-local"
+          id="time"
+          required
+        />
       </div>
 
       <div class="field">
         <span>Exercise</span>
-        <input type="text" id="exercise" placeholder="Bench Press" required />
+        <input
+          type="text"
+          id="exercise"
+          placeholder="Bench Press"
+          required
+        />
       </div>
 
       <div class="field">
         <span>Weight (kg)</span>
-        <input type="number" id="weightKg" placeholder="80" step="0.1" required />
+        <input
+          type="number"
+          id="weightKg"
+          step="0.1"
+          placeholder="80"
+          required
+        />
       </div>
 
       <div class="field">
         <span>Reps</span>
-        <input type="number" id="reps" placeholder="8" required />
+        <input
+          type="number"
+          id="reps"
+          placeholder="8"
+          required
+        />
       </div>
 
       <div class="field">
         <span>Sets</span>
-        <input type="number" id="sets" placeholder="3" required />
-      </div>
-
-      <div class="field">
-        <span>Training Day Id</span>
-        <input type="number" id="trainingDayId" placeholder="1" required />
+        <input
+          type="number"
+          id="sets"
+          placeholder="3"
+          required
+        />
       </div>
 
       <div class="button-row">
@@ -53,7 +103,7 @@
       </div>
     </form>
 
-    <div id="message" class="output" style="display: none;"></div>
+    <div id="message" class="output hidden"></div>
   </main>
 
   <script src="script.js" defer></script>
