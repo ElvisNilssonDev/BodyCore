@@ -1,11 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Nutrition</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    
+  <main class="page">
+    <h1>Add Nutrition</h1>
+    <p class="hint">Log your meal and macros.</p>
+
+    <form id="nutritionForm">
+      <div class="field">
+        <span>Title</span>
+        <input type="text" id="nutritionTitle" placeholder="Chicken and Rice" required />
+      </div>
+
+      <div class="field">
+        <span>Time</span>
+        <input type="datetime-local" id="nutritionTime" required />
+      </div>
+
+      <div class="field">
+        <span>Calories</span>
+        <input type="number" id="calories" placeholder="650" required />
+      </div>
+
+      <div class="field">
+        <span>Protein (g)</span>
+        <input type="number" id="protein" placeholder="45" required />
+      </div>
+
+      <div class="field">
+        <span>Carbs (g)</span>
+        <input type="number" id="carbs" placeholder="70" required />
+      </div>
+
+      <div class="field">
+        <span>Fat (g)</span>
+        <input type="number" id="fat" placeholder="18" required />
+      </div>
+
+      <div class="field">
+        <span>Training Day Id</span>
+        <input type="number" id="nutritionTrainingDayId" placeholder="1" required />
+      </div>
+
+      <div class="button-row">
+        <button type="submit" class="btn active">Add Meal</button>
+        <button type="button" id="backBtn">Back</button>
+      </div>
+    </form>
+
+    <div id="message" class="output" style="display:none;"></div>
+  </main>
+
+  <script src="script.js" defer></script>
 </body>
 </html>
