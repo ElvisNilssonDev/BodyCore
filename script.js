@@ -3,11 +3,15 @@ const loadingDiv = document.getElementById("loading");
 const errorDiv = document.getElementById("error");
 const resultsContainer = document.getElementById("results-container");
 
+// Base URL for the API
 const API_BASE = "https://localhost:7239/api";
 
 let currentData = [];
 
+// Function to fetch data from the API and display it using cards
 async function fetchData(endpoint) {
+    if (!loadingDiv || !errorDiv || !resultsContainer) return;
+
     loadingDiv.style.display = "block";
     errorDiv.style.display = "none";
     resultsContainer.innerHTML = "";
@@ -38,6 +42,8 @@ async function fetchData(endpoint) {
 }
 
 function renderData(endpoint, data) {
+    if (!resultsContainer) return;
+
     resultsContainer.innerHTML = "";
 
     if (!Array.isArray(data) || data.length === 0) {
@@ -96,14 +102,116 @@ function createNutritionCard(nutrition) {
     return card;
 }
 
-buttons.forEach(button => {
-    button.addEventListener("click", function () {
-        buttons.forEach(btn => btn.classList.remove("active"));
-        button.classList.add("active");
+// Only attach fetch button logic if buttons exist
+if (buttons.length > 0) {
+    buttons.forEach(button => {
+        button.addEventListener("click", function () {
+            const endpoint = button.getAttribute("data-endpoint");
 
-        const endpoint = button.getAttribute("data-endpoint");
-        fetchData(endpoint);
+            // only fetch if the button is meant for viewing data
+            if (endpoint && resultsContainer) {
+                buttons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                fetchData(endpoint);
+            }
+        });
     });
-});
+}
 
-fetchData("liftentries");
+// Only auto-fetch on the page that actually has results container
+if (resultsContainer) {
+    fetchData("liftentries");
+}
+
+// Navigation buttons
+const goToLift = document.getElementById("goToLift");
+const goToNutrition = document.getElementById("goToNutrition");
+
+if (goToLift) {
+    goToLift.addEventListener("click", () => {
+        window.location.href = "AddLift.html";
+    });
+}
+
+if (goToNutrition) {
+    goToNutrition.addEventListener("click", () => {
+        window.location.href = "AddNutrition.html";
+    });
+}
+
+// Add lift form
+const liftForm = document.getElementById("liftForm");
+const messageBox = document.getElementById("message");
+const backBtn = document.getElementById("backBtn");
+
+if (backBtn) {
+    backBtn.addEventListener("click", () => {
+        window.location.href = "index.html";
+    });
+}
+
+if (liftForm) {
+    liftForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById("title").value.trim();
+        const time = document.getElementById("time").value;
+        const exercise = document.getElementById("exercise").value.trim();
+        const weightKg = parseFloat(document.getElementById("weightKg").value);
+        const reps = parseInt(document.getElementById("reps").value);
+        const sets = parseInt(document.getElementById("sets").value);
+        const trainingDayId = parseInt(document.getElementById("trainingDayId").value);
+
+        const newLift = {
+            title: title,
+            time: new Date(time).toISOString(),
+            exercise: exercise,
+            weightKg: weightKg,
+            reps: reps,
+            sets: sets,
+            trainingDayId: trainingDayId
+        };
+
+        console.log("Sending lift:", newLift);
+
+        try {
+            const response = await fetch(`${API_BASE}/liftentries`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newLift)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to add lift. Status: ${response.status}. ${errorText}`);
+            }
+
+            let createdLift = null;
+            const responseText = await response.text();
+
+            if (responseText) {
+                createdLift = JSON.parse(responseText);
+            }
+
+            if (messageBox) {
+                messageBox.style.display = "block";
+                messageBox.innerHTML = `
+                    <p><strong>Lift added successfully.</strong></p>
+                    <pre>${JSON.stringify(createdLift ?? newLift, null, 2)}</pre>
+                `;
+            }
+
+            liftForm.reset();
+
+        } catch (error) {
+            console.error("POST failed:", error);
+
+            if (messageBox) {
+                messageBox.style.display = "block";
+                messageBox.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    });
+}

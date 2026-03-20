@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Lift</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page">
+    <h1>Add Lift</h1>
+    <p class="hint">Create a new lift entry and send it to your API.</p>
+
+    <form id="liftForm">
+      <div class="field">
+        <span>Title</span>
+        <input type="text" id="title" placeholder="Push Day Bench" required />
+      </div>
+
+      <div class="field">
+        <span>Time</span>
+        <input type="datetime-local" id="time" required />
+      </div>
+
+      <div class="field">
+        <span>Exercise</span>
+        <input type="text" id="exercise" placeholder="Bench Press" required />
+      </div>
+
+      <div class="field">
+        <span>Weight (kg)</span>
+        <input type="number" id="weightKg" placeholder="80" step="0.1" required />
+      </div>
+
+      <div class="field">
+        <span>Reps</span>
+        <input type="number" id="reps" placeholder="8" required />
+      </div>
+
+      <div class="field">
+        <span>Sets</span>
+        <input type="number" id="sets" placeholder="3" required />
+      </div>
+
+      <div class="field">
+        <span>Training Day Id</span>
+        <input type="number" id="trainingDayId" placeholder="1" required />
+      </div>
+
+      <div class="button-row">
+        <button type="submit" class="btn active">Add Lift</button>
+        <button type="button" id="backBtn">Back</button>
+      </div>
+    </form>
+
+    <div id="message" class="output" style="display: none;"></div>
+  </main>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

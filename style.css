@@ -216,3 +216,25 @@ pre {
     transform: rotate(360deg);
   }
 }
+
+form {
+  max-width: 420px;
+  margin: 32px auto 0;
+  padding: 24px;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #334155;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.field {
+  margin: 16px 0;
+}
+
+input {
+  width: 100%;
+}
+
+.button-row {
+  justify-content: center;
+}
