@@ -256,3 +256,41 @@ input {
 .hidden {
   display: none;
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 460px;
+  background: linear-gradient(180deg, #111827, #020617);
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.modal-box h2 {
+  margin: 0 0 18px;
+  color: #f8fafc;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.hidden {
+  display: none !important;
+}

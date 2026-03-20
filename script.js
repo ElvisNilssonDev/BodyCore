@@ -1,14 +1,55 @@
+// =========================
+// Element references
+// =========================
 const buttons = document.querySelectorAll(".btn");
 const loadingDiv = document.getElementById("loading");
 const errorDiv = document.getElementById("error");
 const resultsContainer = document.getElementById("results-container");
 
-// Base URL for the API
-const API_BASE = "https://localhost:7239/api";
+const goToLift = document.getElementById("goToLift");
+const goToNutrition = document.getElementById("goToNutrition");
 
+const liftForm = document.getElementById("liftForm");
+const nutritionForm = document.getElementById("nutritionForm");
+const messageBox = document.getElementById("message");
+const backBtn = document.getElementById("backBtn");
+
+const modalOverlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalContent = document.getElementById("modalContent");
+const modalCancel = document.getElementById("modalCancel");
+const modalSave = document.getElementById("modalSave");
+
+// =========================
+// Config
+// =========================
+const API_BASE = "https://localhost:7239/api";
 let currentData = [];
 
-// Function to fetch data from the API and display it using cards
+// =========================
+// Modal helpers
+// =========================
+function closeModal() {
+    if (modalOverlay) modalOverlay.classList.add("hidden");
+    if (modalContent) modalContent.innerHTML = "";
+    if (modalSave) modalSave.onclick = null;
+}
+
+if (modalCancel) {
+    modalCancel.addEventListener("click", closeModal);
+}
+
+if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
+}
+
+// =========================
+// Fetch + render
+// =========================
 async function fetchData(endpoint) {
     if (!loadingDiv || !errorDiv || !resultsContainer) return;
 
@@ -17,21 +58,15 @@ async function fetchData(endpoint) {
     resultsContainer.innerHTML = "";
 
     try {
-        const url = `${API_BASE}/${endpoint}`;
-        console.log("Fetching:", url);
-
-        const response = await fetch(url);
+        const response = await fetch(`${API_BASE}/${endpoint}`);
 
         if (!response.ok) {
-            throw new Error("HTTP error! Status: " + response.status);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("Received data:", data);
-
         currentData = data;
         renderData(endpoint, data);
-
     } catch (error) {
         console.error("Fetch failed:", error);
         errorDiv.textContent = "⚠️ Failed to load data: " + error.message;
@@ -62,6 +97,9 @@ function renderData(endpoint, data) {
     }
 }
 
+// =========================
+// Card creation
+// =========================
 function createLiftCard(lift) {
     const card = document.createElement("div");
     card.classList.add("card");
@@ -88,9 +126,19 @@ function createLiftCard(lift) {
 
     const manageBtn = card.querySelector(".manage-btn");
     const actions = card.querySelector(".card-actions");
+    const updateBtn = card.querySelector(".update-btn");
+    const deleteBtn = card.querySelector(".delete-btn");
 
     manageBtn.addEventListener("click", () => {
         actions.classList.toggle("hidden");
+    });
+
+    updateBtn.addEventListener("click", () => {
+        updateLift(lift);
+    });
+
+    deleteBtn.addEventListener("click", () => {
+        deleteLift(lift.id);
     });
 
     return card;
@@ -122,39 +170,241 @@ function createNutritionCard(nutrition) {
 
     const manageBtn = card.querySelector(".manage-btn");
     const actions = card.querySelector(".card-actions");
+    const updateBtn = card.querySelector(".update-btn");
+    const deleteBtn = card.querySelector(".delete-btn");
 
     manageBtn.addEventListener("click", () => {
         actions.classList.toggle("hidden");
     });
 
+    updateBtn.addEventListener("click", () => {
+        updateNutrition(nutrition);
+    });
+
+    deleteBtn.addEventListener("click", () => {
+        deleteNutrition(nutrition.id);
+    });
+
     return card;
 }
 
-// Only attach fetch button logic if buttons exist
-if (buttons.length > 0) {
-    buttons.forEach(button => {
-        button.addEventListener("click", function () {
-            const endpoint = button.getAttribute("data-endpoint");
+// =========================
+// CRUD - DELETE
+// =========================
+function deleteLift(id) {
+    if (!modalOverlay || !modalTitle || !modalContent || !modalSave) {
+        console.error("Modal elements missing");
+        return;
+    }
 
-            // only fetch if the button is meant for viewing data
-            if (endpoint && resultsContainer) {
-                buttons.forEach(btn => btn.classList.remove("active"));
-                button.classList.add("active");
-                fetchData(endpoint);
+    modalTitle.textContent = "Delete Lift";
+    modalSave.textContent = "Delete";
+
+    modalContent.innerHTML = `
+        <p class="card-body" style="text-align:center;">
+            Are you sure you want to delete this lift?
+        </p>
+    `;
+
+    modalOverlay.classList.remove("hidden");
+
+    modalSave.onclick = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/liftentries/${id}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `DELETE failed with ${response.status}`);
             }
-        });
-    });
+
+            closeModal();
+            fetchData("liftentries");
+        } catch (error) {
+            console.error("Delete lift failed:", error);
+        }
+    };
 }
 
-// Only auto-fetch on the page that actually has results container
-if (resultsContainer) {
-    fetchData("liftentries");
+function deleteNutrition(id) {
+    if (!modalOverlay || !modalTitle || !modalContent || !modalSave) {
+        console.error("Modal elements missing");
+        return;
+    }
+
+    modalTitle.textContent = "Delete Nutrition";
+    modalSave.textContent = "Delete";
+
+    modalContent.innerHTML = `
+        <p class="card-body" style="text-align:center;">
+            Are you sure you want to delete this nutrition entry?
+        </p>
+    `;
+
+    modalOverlay.classList.remove("hidden");
+
+    modalSave.onclick = async () => {
+        try {
+            const response = await fetch(`${API_BASE}/nutritionentries/${id}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `DELETE failed with ${response.status}`);
+            }
+
+            closeModal();
+            fetchData("nutritionentries");
+        } catch (error) {
+            console.error("Delete nutrition failed:", error);
+        }
+    };
 }
 
-// Navigation buttons
-const goToLift = document.getElementById("goToLift");
-const goToNutrition = document.getElementById("goToNutrition");
+// =========================
+// CRUD - UPDATE
+// =========================
+function updateLift(lift) {
+    if (!modalOverlay || !modalTitle || !modalContent || !modalSave) {
+        console.error("Modal elements missing");
+        return;
+    }
 
+    modalTitle.textContent = "Edit Lift";
+    modalSave.textContent = "Save";
+
+    modalContent.innerHTML = `
+        <div class="field">
+            <span>Title</span>
+            <input type="text" id="editTitle" value="${lift.title}">
+        </div>
+        <div class="field">
+            <span>Exercise</span>
+            <input type="text" id="editExercise" value="${lift.exercise}">
+        </div>
+        <div class="field">
+            <span>Weight (kg)</span>
+            <input type="number" id="editWeightKg" value="${lift.weightKg}">
+        </div>
+        <div class="field">
+            <span>Reps</span>
+            <input type="number" id="editReps" value="${lift.reps}">
+        </div>
+        <div class="field">
+            <span>Sets</span>
+            <input type="number" id="editSets" value="${lift.sets}">
+        </div>
+    `;
+
+    modalOverlay.classList.remove("hidden");
+
+    modalSave.onclick = async () => {
+        const updatedLift = {
+            id: lift.id,
+            title: document.getElementById("editTitle").value.trim(),
+            time: lift.time,
+            exercise: document.getElementById("editExercise").value.trim(),
+            weightKg: parseFloat(document.getElementById("editWeightKg").value),
+            reps: parseInt(document.getElementById("editReps").value),
+            sets: parseInt(document.getElementById("editSets").value),
+            trainingDayId: lift.trainingDayId
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}/liftentries/${lift.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updatedLift)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `PUT failed with ${response.status}`);
+            }
+
+            closeModal();
+            fetchData("liftentries");
+        } catch (error) {
+            console.error("Update lift failed:", error);
+        }
+    };
+}
+
+function updateNutrition(nutrition) {
+    if (!modalOverlay || !modalTitle || !modalContent || !modalSave) {
+        console.error("Modal elements missing");
+        return;
+    }
+
+    modalTitle.textContent = "Edit Nutrition";
+    modalSave.textContent = "Save";
+
+    modalContent.innerHTML = `
+        <div class="field">
+            <span>Title</span>
+            <input type="text" id="editNutritionTitle" value="${nutrition.title}">
+        </div>
+        <div class="field">
+            <span>Calories</span>
+            <input type="number" id="editCalories" value="${nutrition.calories}">
+        </div>
+        <div class="field">
+            <span>Protein (g)</span>
+            <input type="number" id="editProteinGrams" value="${nutrition.proteinGrams ?? 0}">
+        </div>
+        <div class="field">
+            <span>Carbs (g)</span>
+            <input type="number" id="editCarbsGrams" value="${nutrition.carbsGrams ?? 0}">
+        </div>
+        <div class="field">
+            <span>Fat (g)</span>
+            <input type="number" id="editFatGrams" value="${nutrition.fatGrams ?? 0}">
+        </div>
+    `;
+
+    modalOverlay.classList.remove("hidden");
+
+    modalSave.onclick = async () => {
+        const updatedNutrition = {
+            id: nutrition.id,
+            title: document.getElementById("editNutritionTitle").value.trim(),
+            time: nutrition.time,
+            calories: parseInt(document.getElementById("editCalories").value),
+            proteinGrams: parseInt(document.getElementById("editProteinGrams").value),
+            carbsGrams: parseInt(document.getElementById("editCarbsGrams").value),
+            fatGrams: parseInt(document.getElementById("editFatGrams").value),
+            trainingDayId: nutrition.trainingDayId
+        };
+
+        try {
+            const response = await fetch(`${API_BASE}/nutritionentries/${nutrition.id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(updatedNutrition)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `PUT failed with ${response.status}`);
+            }
+
+            closeModal();
+            fetchData("nutritionentries");
+        } catch (error) {
+            console.error("Update nutrition failed:", error);
+        }
+    };
+}
+
+// =========================
+// Navigation
+// =========================
 if (goToLift) {
     goToLift.addEventListener("click", () => {
         window.location.href = "AddLift.html";
@@ -167,40 +417,62 @@ if (goToNutrition) {
     });
 }
 
-// Add lift form
-const liftForm = document.getElementById("liftForm");
-const messageBox = document.getElementById("message");
-const backBtn = document.getElementById("backBtn");
-
 if (backBtn) {
     backBtn.addEventListener("click", () => {
         window.location.href = "index.html";
     });
 }
 
+// =========================
+// View buttons on index page
+// =========================
+if (buttons.length > 0) {
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            const endpoint = button.getAttribute("data-endpoint");
+
+            if (endpoint && resultsContainer) {
+                buttons.forEach(btn => btn.classList.remove("active"));
+                button.classList.add("active");
+                fetchData(endpoint);
+            }
+        });
+    });
+}
+
+if (resultsContainer) {
+    fetchData("liftentries");
+}
+
+// =========================
+// POST - Add Lift
+// =========================
 if (liftForm) {
     liftForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const title = document.getElementById("title").value.trim();
-        const time = document.getElementById("time").value;
-        const exercise = document.getElementById("exercise").value.trim();
-        const weightKg = parseFloat(document.getElementById("weightKg").value);
-        const reps = parseInt(document.getElementById("reps").value);
-        const sets = parseInt(document.getElementById("sets").value);
-        const trainingDayId = parseInt(document.getElementById("trainingDayId").value);
+        const titleEl = document.getElementById("title");
+        const timeEl = document.getElementById("time");
+        const exerciseEl = document.getElementById("exercise");
+        const weightKgEl = document.getElementById("weightKg");
+        const repsEl = document.getElementById("reps");
+        const setsEl = document.getElementById("sets");
+        const trainingDayIdEl = document.getElementById("trainingDayId");
+
+        if (!titleEl || !timeEl || !exerciseEl || !weightKgEl || !repsEl || !setsEl || !trainingDayIdEl) {
+            console.error("Lift form IDs do not match script.js");
+            return;
+        }
 
         const newLift = {
-            title: title,
-            time: new Date(time).toISOString(),
-            exercise: exercise,
-            weightKg: weightKg,
-            reps: reps,
-            sets: sets,
-            trainingDayId: trainingDayId
+            title: titleEl.value.trim(),
+            time: new Date(timeEl.value).toISOString(),
+            exercise: exerciseEl.value.trim(),
+            weightKg: parseFloat(weightKgEl.value),
+            reps: parseInt(repsEl.value),
+            sets: parseInt(setsEl.value),
+            trainingDayId: parseInt(trainingDayIdEl.value)
         };
-
-        console.log("Sending lift:", newLift);
 
         try {
             const response = await fetch(`${API_BASE}/liftentries`, {
@@ -216,12 +488,8 @@ if (liftForm) {
                 throw new Error(`Failed to add lift. Status: ${response.status}. ${errorText}`);
             }
 
-            let createdLift = null;
             const responseText = await response.text();
-
-            if (responseText) {
-                createdLift = JSON.parse(responseText);
-            }
+            const createdLift = responseText ? JSON.parse(responseText) : null;
 
             if (messageBox) {
                 messageBox.style.display = "block";
@@ -232,9 +500,8 @@ if (liftForm) {
             }
 
             liftForm.reset();
-
         } catch (error) {
-            console.error("POST failed:", error);
+            console.error("POST lift failed:", error);
 
             if (messageBox) {
                 messageBox.style.display = "block";
@@ -244,31 +511,35 @@ if (liftForm) {
     });
 }
 
-const nutritionForm = document.getElementById("nutritionForm");
-
+// =========================
+// POST - Add Nutrition
+// =========================
 if (nutritionForm) {
     nutritionForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const title = document.getElementById("nutritionTitle").value.trim();
-        const time = document.getElementById("nutritionTime").value;
-        const calories = parseInt(document.getElementById("calories").value);
-        const proteinGrams = parseInt(document.getElementById("protein").value);
-        const carbsGrams = parseInt(document.getElementById("carbs").value);
-        const fatGrams = parseInt(document.getElementById("fat").value);
-        const trainingDayId = parseInt(document.getElementById("nutritionTrainingDayId").value);
+        const titleEl = document.getElementById("nutritionTitle");
+        const timeEl = document.getElementById("nutritionTime");
+        const caloriesEl = document.getElementById("calories");
+        const proteinEl = document.getElementById("protein");
+        const carbsEl = document.getElementById("carbs");
+        const fatEl = document.getElementById("fat");
+        const trainingDayIdEl = document.getElementById("nutritionTrainingDayId");
+
+        if (!titleEl || !timeEl || !caloriesEl || !proteinEl || !carbsEl || !fatEl || !trainingDayIdEl) {
+            console.error("Nutrition form IDs do not match script.js");
+            return;
+        }
 
         const newNutrition = {
-            title: title,
-            time: new Date(time).toISOString(),
-            calories: calories,
-            proteinGrams: proteinGrams,
-            carbsGrams: carbsGrams,
-            fatGrams: fatGrams,
-            trainingDayId: trainingDayId
+            title: titleEl.value.trim(),
+            time: new Date(timeEl.value).toISOString(),
+            calories: parseInt(caloriesEl.value),
+            proteinGrams: parseInt(proteinEl.value),
+            carbsGrams: parseInt(carbsEl.value),
+            fatGrams: parseInt(fatEl.value),
+            trainingDayId: parseInt(trainingDayIdEl.value)
         };
-
-        console.log("Sending nutrition:", newNutrition);
 
         try {
             const response = await fetch(`${API_BASE}/nutritionentries`, {
@@ -284,25 +555,20 @@ if (nutritionForm) {
                 throw new Error(`Failed to add nutrition. Status: ${response.status}. ${errorText}`);
             }
 
-            let createdNutrition = null;
             const responseText = await response.text();
-
-            if (responseText) {
-                createdNutrition = JSON.parse(responseText);
-            }
+            const createdNutrition = responseText ? JSON.parse(responseText) : null;
 
             if (messageBox) {
                 messageBox.style.display = "block";
                 messageBox.innerHTML = `
-                    <p><strong>Meal added successfully.</strong></p>
+                    <p><strong>Nutrition added successfully.</strong></p>
                     <pre>${JSON.stringify(createdNutrition ?? newNutrition, null, 2)}</pre>
                 `;
             }
 
             nutritionForm.reset();
-
         } catch (error) {
-            console.error("Nutrition POST failed:", error);
+            console.error("POST nutrition failed:", error);
 
             if (messageBox) {
                 messageBox.style.display = "block";
@@ -311,11 +577,3 @@ if (nutritionForm) {
         }
     });
 }
-
-// Delegate manage button clicks for lift cards
-const manageBtn = card.querySelector(".manage-btn");
-const actions = card.querySelector(".card-actions");
-
-manageBtn.addEventListener("click", () => {
-    actions.classList.toggle("hidden");
-});
