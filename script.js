@@ -26,11 +26,15 @@ const trainingDaySelect = document.getElementById("trainingDaySelect");
 const newWeekBtn = document.getElementById("newWeekBtn");
 const newDayBtn = document.getElementById("newDayBtn");
 
+// Search
+const searchInput = document.getElementById("searchInput");
+
 // =========================
 // Config
 // =========================
 const API_BASE = "https://localhost:7239/api";
 let currentData = [];
+let currentEndpoint = "liftentries";
 
 // =========================
 // Helpers
@@ -67,6 +71,7 @@ if (modalOverlay) {
 async function fetchData(endpoint) {
     if (!loadingDiv || !errorDiv || !resultsContainer) return;
 
+    currentEndpoint = endpoint;
     loadingDiv.style.display = "block";
     errorDiv.style.display = "none";
     resultsContainer.innerHTML = "";
@@ -80,6 +85,11 @@ async function fetchData(endpoint) {
 
         const data = await response.json();
         currentData = data;
+
+        if (searchInput) {
+            searchInput.value = "";
+        }
+
         renderData(endpoint, data);
     } catch (error) {
         console.error("Fetch failed:", error);
@@ -491,9 +501,15 @@ function renderLiftSections(data) {
         const sectionBox = document.createElement("section");
         sectionBox.classList.add("section-box");
 
+        const sectionNameLower = sectionName.toLowerCase();
+        if (sectionNameLower.includes("push")) sectionBox.classList.add("push");
+        if (sectionNameLower.includes("pull")) sectionBox.classList.add("pull");
+        if (sectionNameLower.includes("leg")) sectionBox.classList.add("legs");
+        if (sectionNameLower.includes("rest")) sectionBox.classList.add("rest");
+
         const sectionTitle = document.createElement("h2");
         sectionTitle.classList.add("section-title");
-        sectionTitle.textContent = sectionName;
+        sectionTitle.textContent = `${sectionName} (${items.length})`;
 
         const cardGroup = document.createElement("div");
         cardGroup.classList.add("card-group");
@@ -544,9 +560,15 @@ function renderNutritionSections(data) {
         const sectionBox = document.createElement("section");
         sectionBox.classList.add("section-box");
 
+        const sectionNameLower = sectionName.toLowerCase();
+        if (sectionNameLower.includes("push")) sectionBox.classList.add("push");
+        if (sectionNameLower.includes("pull")) sectionBox.classList.add("pull");
+        if (sectionNameLower.includes("leg")) sectionBox.classList.add("legs");
+        if (sectionNameLower.includes("rest")) sectionBox.classList.add("rest");
+
         const sectionTitle = document.createElement("h2");
         sectionTitle.classList.add("section-title");
-        sectionTitle.textContent = sectionName;
+        sectionTitle.textContent = `${sectionName} (${items.length})`;
 
         const cardGroup = document.createElement("div");
         cardGroup.classList.add("card-group");
@@ -645,13 +667,22 @@ if (trainingWeekSelect) {
 if (newWeekBtn) {
     newWeekBtn.addEventListener("click", async () => {
         const weekTitle = prompt("Enter training week title, for example: Week 1");
-        if (!weekTitle || !weekTitle.trim()) return;
+        if (!weekTitle || weekTitle.trim().length < 3) {
+            showMessage("Training week title must be at least 3 characters long.", true);
+            return;
+        }
 
         const weekDescription = prompt("Enter training week description, for example: Intro week");
-        if (!weekDescription || !weekDescription.trim()) return;
+        if (!weekDescription || !weekDescription.trim()) {
+            showMessage("Training week description is required.", true);
+            return;
+        }
 
         const weekStartInput = prompt("Enter week start date in this format: 2026-03-20");
-        if (!weekStartInput || !weekStartInput.trim()) return;
+        if (!weekStartInput || !weekStartInput.trim()) {
+            showMessage("Week start date is required.", true);
+            return;
+        }
 
         const newWeek = {
             title: weekTitle.trim(),
@@ -704,13 +735,22 @@ if (newDayBtn) {
         }
 
         const dayTitle = prompt("Enter training day title, for example: Saturday");
-        if (!dayTitle || !dayTitle.trim()) return;
+        if (!dayTitle || dayTitle.trim().length < 3) {
+            showMessage("Training day title must be at least 3 characters long.", true);
+            return;
+        }
 
         const dayDescription = prompt("Enter training day description, for example: Legday");
-        if (!dayDescription || !dayDescription.trim()) return;
+        if (!dayDescription || !dayDescription.trim()) {
+            showMessage("Training day description is required.", true);
+            return;
+        }
 
         const dayDateInput = prompt("Enter training day date in this format: 2026-03-20");
-        if (!dayDateInput || !dayDateInput.trim()) return;
+        if (!dayDateInput || !dayDateInput.trim()) {
+            showMessage("Training day date is required.", true);
+            return;
+        }
 
         const newDay = {
             title: dayTitle.trim(),
@@ -892,4 +932,43 @@ if (nutritionForm) {
 // =========================
 if (trainingWeekSelect) {
     loadTrainingWeeks();
+}
+
+// =========================
+// Search functionality
+// =========================
+function filterData(searchTerm) {
+    if (!Array.isArray(currentData)) return [];
+
+    const term = searchTerm.trim().toLowerCase();
+
+    if (!term) return currentData;
+
+    return currentData.filter(item => {
+        const searchableValues = [
+            item.title,
+            item.exercise,
+            item.description,
+            item.weightKg,
+            item.reps,
+            item.sets,
+            item.calories,
+            item.proteinGrams,
+            item.carbsGrams,
+            item.fatGrams
+        ];
+
+        return searchableValues.some(value =>
+            value !== undefined &&
+            value !== null &&
+            value.toString().toLowerCase().includes(term)
+        );
+    });
+}
+
+if (searchInput) {
+    searchInput.addEventListener("input", () => {
+        const filteredData = filterData(searchInput.value);
+        renderData(currentEndpoint, filteredData);
+    });
 }
