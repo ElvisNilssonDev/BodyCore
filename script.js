@@ -215,3 +215,71 @@ if (liftForm) {
         }
     });
 }
+
+const nutritionForm = document.getElementById("nutritionForm");
+
+if (nutritionForm) {
+    nutritionForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const title = document.getElementById("nutritionTitle").value.trim();
+        const time = document.getElementById("nutritionTime").value;
+        const calories = parseInt(document.getElementById("calories").value);
+        const proteinGrams = parseInt(document.getElementById("protein").value);
+        const carbsGrams = parseInt(document.getElementById("carbs").value);
+        const fatGrams = parseInt(document.getElementById("fat").value);
+        const trainingDayId = parseInt(document.getElementById("nutritionTrainingDayId").value);
+
+        const newNutrition = {
+            title: title,
+            time: new Date(time).toISOString(),
+            calories: calories,
+            proteinGrams: proteinGrams,
+            carbsGrams: carbsGrams,
+            fatGrams: fatGrams,
+            trainingDayId: trainingDayId
+        };
+
+        console.log("Sending nutrition:", newNutrition);
+
+        try {
+            const response = await fetch(`${API_BASE}/nutritionentries`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(newNutrition)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to add nutrition. Status: ${response.status}. ${errorText}`);
+            }
+
+            let createdNutrition = null;
+            const responseText = await response.text();
+
+            if (responseText) {
+                createdNutrition = JSON.parse(responseText);
+            }
+
+            if (messageBox) {
+                messageBox.style.display = "block";
+                messageBox.innerHTML = `
+                    <p><strong>Meal added successfully.</strong></p>
+                    <pre>${JSON.stringify(createdNutrition ?? newNutrition, null, 2)}</pre>
+                `;
+            }
+
+            nutritionForm.reset();
+
+        } catch (error) {
+            console.error("Nutrition POST failed:", error);
+
+            if (messageBox) {
+                messageBox.style.display = "block";
+                messageBox.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            }
+        }
+    });
+}
