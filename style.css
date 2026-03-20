@@ -141,8 +141,8 @@ pre {
 
 .card:hover {
   border-color: #6366f1;
-  box-shadow: 0 10px 24px rgba(99, 102, 241, 0.16);
-  transform: translateY(-2px);
+  box-shadow: 0 14px 30px rgba(99, 102, 241, 0.18);
+  transform: translateY(-4px) scale(1.02);
 }
 
 .card-title {
@@ -237,4 +237,22 @@ input {
 
 .button-row {
   justify-content: center;
+}
+
+.manage-btn,
+.update-btn,
+.delete-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.card-actions {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hidden {
+  display: none;
 }
